@@ -421,6 +421,49 @@
         .preview-container::-webkit-scrollbar-thumb:hover {
             background: var(--primary-dark);
         }
+
+        /* Fittings and Brands Styles */
+        .fittings-brands-section {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .fittings-brands-table {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .fittings-brands-table th {
+            background: var(--accent);
+            color: white;
+        }
+
+        .fittings-brands-table td {
+            font-size: 0.85rem;
+        }
+
+        .note-row td {
+            background: #fff9e6;
+            color: #856404;
+            font-weight: 600;
+            text-align: center;
+            border: 2px solid var(--accent);
+        }
+
+        .fittings-form-group {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .fittings-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr auto;
+            gap: 0.75rem;
+            align-items: end;
+        }
     </style>
 </head>
 <body>
@@ -541,6 +584,35 @@ const UNITS = [
     { value: "running ft", label: "running ft" }
 ];
 
+// Fittings and Brands Data
+const FITTING_OPTIONS = [
+    'WARDROBE MODULAR FITTINGS',
+    'KITCHEN MODULAR FITTINGS',
+    'BOARD/PLY',
+    'LAMINATES',
+    'PAINT',
+    'ELECTRICAL FITTINGS(PANEL LIGHTS)',
+    'TILES',
+    'FALSE CEILING (POP)',
+    'CEMENT',
+    'ELECTRICAL WIRING IN FALSE CEILING + COMPLETE FLATIAS PER REQUIREMENT',
+    'SANITARYWARE'
+];
+
+const BRAND_OPTIONS = {
+    'WARDROBE MODULAR FITTINGS': ['CENTURY/Godrej (7 year replacement warranty)', 'Hettich', 'Ebco', 'Hafele'],
+    'KITCHEN MODULAR FITTINGS': ['CENTURY/Godrej (7 year replacement warranty)', 'Hettich', 'Ebco', 'Hafele'],
+    'BOARD/PLY': ['Centuary', 'Green Ply', 'Action Tesa', 'Century'],
+    'LAMINATES': ['ADVANCE/VIRGO', 'Merino', 'Greenlam', 'Royale Touche'],
+    'PAINT': ['ASIAN ROYALE', 'Asian Paints', 'Berger', 'Dulux'],
+    'ELECTRICAL FITTINGS(PANEL LIGHTS)': ['SYSKA/SURYA/ANCHOR', 'Philips', 'Havells', 'Wipro'],
+    'TILES': ['AGL/ITALIAN FLOORING', 'Kajaria', 'Somany', 'RAK Ceramics'],
+    'FALSE CEILING (POP)': ['GYPROC/ANN', 'Saint-Gobain', 'USG Boral', 'Everest'],
+    'CEMENT': ['JK BIRLA/ AMBUJA', 'UltraTech', 'ACC', 'Shree'],
+    'ELECTRICAL WIRING IN FALSE CEILING + COMPLETE FLATIAS PER REQUIREMENT': ['SURYA/ POLYCAB 1MM/1.5MM/2.5MM (AS PER REQUIREMENT)', 'Havells', 'Finolex', 'KEI'],
+    'SANITARYWARE': ['HINDWARE/JAQUAR', 'Kohler', 'Cera', 'Parryware']
+};
+
 const getDisplayName = (row) => {
     if (!row) return "";
     if (row.itemName === "__custom__") return row.customItemName || "";
@@ -569,6 +641,12 @@ function QuotationGenerator() {
         { id: 1, itemName: 'DISMANTLING', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 },
         { id: 2, itemName: 'Brick work', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 },
         { id: 3, itemName: 'Plastering', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 }
+    ]);
+
+    // Fittings and Brands State
+    const [selectedFittings, setSelectedFittings] = useState([
+        { id: 1, fitting: 'WARDROBE MODULAR FITTINGS', brand: 'CENTURY/Godrej (7 year replacement warranty)', customBrand: '' },
+        { id: 2, fitting: 'KITCHEN MODULAR FITTINGS', brand: 'CENTURY/Godrej (7 year replacement warranty)', customBrand: '' }
     ]);
 
     const addCategory = () => {
@@ -744,6 +822,50 @@ function QuotationGenerator() {
 
     const getWorkOptionsForCategory = (catName) => {
         return CATEGORY_ITEMS[catName] || CATEGORY_ITEMS["Other"];
+    };
+
+    // Fittings and Brands Functions
+    const addFitting = () => {
+        const newId = Math.max(...selectedFittings.map(f => f.id), 0) + 1;
+        setSelectedFittings([...selectedFittings, { 
+            id: newId, 
+            fitting: FITTING_OPTIONS[0], 
+            brand: BRAND_OPTIONS[FITTING_OPTIONS[0]][0],
+            customBrand: ''
+        }]);
+    };
+
+    const updateFitting = (id, field, value) => {
+        setSelectedFittings(selectedFittings.map(item => {
+            if (item.id === id) {
+                if (field === 'fitting') {
+                    return {
+                        ...item,
+                        fitting: value,
+                        brand: BRAND_OPTIONS[value][0],
+                        customBrand: ''
+                    };
+                }
+                if (field === 'brand' && value !== '__custom__') {
+                    return { ...item, brand: value, customBrand: '' };
+                }
+                return { ...item, [field]: value };
+            }
+            return item;
+        }));
+    };
+
+    const removeFitting = (id) => {
+        if (selectedFittings.length > 1) {
+            setSelectedFittings(selectedFittings.filter(item => item.id !== id));
+        }
+    };
+
+    const getDisplayBrand = (item) => {
+        if (item.brand === '__custom__') {
+            return item.customBrand || 'Custom Brand';
+        }
+        return item.brand;
     };
 
     return (
@@ -941,6 +1063,59 @@ function QuotationGenerator() {
                     </button>
                 </div>
 
+                {/* Fittings and Brands Section */}
+                <div className="form-section">
+                    <h2>Fittings & Brands</h2>
+                    {selectedFittings.map(item => (
+                        <div key={item.id} className="fittings-form-group">
+                            <div className="fittings-row">
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label>Fitting</label>
+                                    <select
+                                        value={item.fitting}
+                                        onChange={(e) => updateFitting(item.id, 'fitting', e.target.value)}
+                                    >
+                                        {FITTING_OPTIONS.map(option => (
+                                            <option key={option} value={option}>{option}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group" style={{ marginBottom: 0 }}>
+                                    <label>Brand</label>
+                                    <select
+                                        value={item.brand}
+                                        onChange={(e) => updateFitting(item.id, 'brand', e.target.value)}
+                                    >
+                                        {BRAND_OPTIONS[item.fitting].map(brand => (
+                                            <option key={brand} value={brand}>{brand}</option>
+                                        ))}
+                                        <option value="__custom__">Custom...</option>
+                                    </select>
+                                </div>
+                                <button
+                                    className="btn-remove"
+                                    onClick={() => removeFitting(item.id)}
+                                    style={{ marginTop: '1.5rem' }}
+                                >
+                                    ✕
+                                </button>
+                            </div>
+                            {item.brand === '__custom__' && (
+                                <div className="form-group" style={{ marginTop: '0.75rem' }}>
+                                    <label>Custom Brand Name</label>
+                                    <input
+                                        type="text"
+                                        value={item.customBrand}
+                                        onChange={(e) => updateFitting(item.id, 'customBrand', e.target.value)}
+                                        placeholder="Enter custom brand name"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                    <button className="btn-add" onClick={addFitting}>+ Add Fitting</button>
+                </div>
+
                 <button className="btn-success" onClick={generatePDF}>📄 Generate PDF</button>
             </div>
 
@@ -1042,6 +1217,30 @@ function QuotationGenerator() {
                         </ul>
                         <h3 style={{ marginTop: '1rem' }}>PAYMENT PLAN</h3>
                         <p>50% advance, 40% between, 10% before final handover</p>
+
+                        {/* Fittings and Brands Table */}
+                        <div className="fittings-brands-section">
+                            <h3>FITTINGS & BRANDS</h3>
+                            <table className="fittings-brands-table">
+                                <thead>
+                                    <tr className="note-row">
+                                        <td colSpan="2">NOTE - All the brands used above are mentioned below</td>
+                                    </tr>
+                                    <tr>
+                                        <th>FITTINGS</th>
+                                        <th>BRAND</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {selectedFittings.map((item) => (
+                                        <tr key={item.id}>
+                                            <td>{item.fitting}</td>
+                                            <td>{getDisplayBrand(item)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
