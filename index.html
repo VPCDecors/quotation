@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPC Décor & Contractors - Quotation Generator</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #e74c3c;
+            --primary-dark: #c0392b;
+            --secondary: #34495e;
+            --accent: #f39c12;
+            --text: #2c3e50;
+            --text-light: #7f8c8d;
+            --bg: #ecf0f1;
+            --white: #ffffff;
+            --border: #bdc3c7;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Cabin', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--text);
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: var(--secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        h2 {
+            font-size: 1.3rem;
+            color: var(--secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--secondary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: 'Cabin', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .items-section {
+            background: var(--bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .category-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .item-row {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border-left: 4px solid var(--primary);
+        }
+
+        .item-inputs {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr auto;
+            gap: 0.75rem;
+            align-items: end;
+        }
+
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cabin', sans-serif;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #2c3e50;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-success:hover {
+            background: #229954;
+            transform: translateY(-2px);
+        }
+
+        .btn-add {
+            background: var(--accent);
+            color: white;
+            margin-top: 1rem;
+        }
+
+        .btn-add:hover {
+            background: #e67e22;
+        }
+
+        .btn-remove {
+            background: #e74c3c;
+            color: white;
+            padding: 0.5rem;
+            min-width: 40px;
+        }
+
+        .btn-remove:hover {
+            background: #c0392b;
+        }
+
+        /* Preview Styles */
+        .preview-container {
+            max-height: calc(100vh - 4rem);
+            overflow-y: auto;
+        }
+
+        .quotation-preview {
+            background: white;
+            padding: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        .preview-logo {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .company-info h2 {
+            font-size: 1.5rem;
+            margin: 0;
+            border: none;
+            padding: 0;
+        }
+
+        .project-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            padding: 0.5rem 0;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        thead {
+            background: var(--secondary);
+            color: white;
+        }
+
+        th {
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-row {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .sub-item-row {
+            background: #f8f9fa;
+        }
+
+        .total-row {
+            background: var(--accent);
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .grand-total {
+            background: var(--secondary);
+            color: white;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .disclaimer-section {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1.5rem;
+            margin-top: 2rem;
+            border-radius: 8px;
+        }
+
+        .disclaimer-section h3 {
+            color: var(--secondary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .disclaimer-section ul {
+            list-style-position: inside;
+            color: var(--text);
+            line-height: 1.8;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        input[type="number"] {
+            text-align: right;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* Scrollbar */
+        .preview-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .preview-container::-webkit-scrollbar-track {
+            background: var(--bg);
+            border-radius: 4px;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .preview-container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+const { useState } = React;
+
+// --- Item library (edit freely) ---
+// The dropdown will show items based on Category name.
+// Users can always pick "Custom..." and type anything.
+const PRELIM_ITEMS = [
+    "DISMANTLING",
+    "Brick work",
+    "Plastering",
+    "Electrical dismantling",
+    "Plumbing dismantling",
+    "Debris removal / Malba",
+    "Site protection (floor/door/window)",
+    "Waterproofing (basic)",
+    "Other"
+];
+
+const CATEGORY_ITEMS = {
+    "MASTER BEDROOM": [
+        "Wardrobe (laminate finish)",
+        "Wardrobe (PU finish)",
+        "Loft / overhead storage",
+        "TV unit",
+        "Bed back panel",
+        "False ceiling",
+        "Wallpaper / wall panel",
+        "Electrical points & switches",
+        "Light fixtures installation",
+        "Curtain rod / pelmet",
+        "Other"
+    ],
+    "2ND ROOM": [
+        "Wardrobe",
+        "Study table",
+        "TV unit",
+        "False ceiling",
+        "Wallpaper / wall panel",
+        "Electrical points & switches",
+        "Other"
+    ],
+    "3RD ROOM": [
+        "Wardrobe",
+        "Study table",
+        "TV unit",
+        "False ceiling",
+        "Wallpaper / wall panel",
+        "Electrical points & switches",
+        "Other"
+    ],
+    "Dining": [
+        "Crockery unit",
+        "Dining wall panel",
+        "False ceiling",
+        "Lighting installation",
+        "Electrical points & switches",
+        "Other"
+    ],
+    "kitchen": [
+        "Modular kitchen (base + wall units)",
+        "Granite / quartz countertop",
+        "Backsplash / tiles",
+        "Hob + chimney installation",
+        "Sink + faucet installation",
+        "Tandem drawers / baskets",
+        "Hardware (hinges, channels, soft close)",
+        "Electrical points & switches",
+        "Plumbing points",
+        "Other"
+    ],
+    "MAIN ENTRANCE": [
+        "Main door polishing / paint",
+        "Main door safety grill",
+        "Shoe rack",
+        "Foyer paneling",
+        "Name plate / signage",
+        "Other"
+    ],
+    "Paint Job": [
+        "Wall putty",
+        "Primer",
+        "Interior paint (labour)",
+        "Interior paint (material)",
+        "Texture paint",
+        "Ceiling paint",
+        "Other"
+    ],
+    "Other": [
+        "Civil work (misc.)",
+        "Electrical work (misc.)",
+        "Plumbing work (misc.)",
+        "Carpentry (misc.)",
+        "Hardware / fittings",
+        "Other"
+    ]
+};
+
+const CATEGORY_COLORS = {
+    'MASTER BEDROOM': '#27ae60',
+    '2ND ROOM': '#3498db',
+    '3RD ROOM': '#9b59b6',
+    'Dining': '#e67e22',
+    'kitchen': '#e74c3c',
+    'MAIN ENTRANCE': '#f39c12',
+    'Paint Job': '#f1c40f',
+    'Other': '#95a5a6'
+};
+
+const UNITS = [
+    { value: "sq.ft", label: "sq.ft" },
+    { value: "unit", label: "unit" },
+    { value: "lump sum", label: "lump sum" },
+    { value: "running ft", label: "running ft" }
+];
+
+const getDisplayName = (row) => {
+    if (!row) return "";
+    if (row.itemName === "__custom__") return row.customItemName || "";
+    return row.itemName || "";
+};
+
+function QuotationGenerator() {
+    const [projectInfo, setProjectInfo] = useState({
+        projectName: '',
+        location: '',
+        clientName: '',
+        flatNo: ''
+    });
+
+    // Work categories
+    const [categories, setCategories] = useState([
+        {
+            id: 1,
+            name: 'MASTER BEDROOM',
+            items: [{ id: 1, itemName: '', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 }]
+        }
+    ]);
+
+    // Preliminary items
+    const [dismantling, setDismantling] = useState([
+        { id: 1, itemName: 'DISMANTLING', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 },
+        { id: 2, itemName: 'Brick work', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 },
+        { id: 3, itemName: 'Plastering', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 }
+    ]);
+
+    const addCategory = () => {
+        const newId = Math.max(...categories.map(c => c.id), 0) + 1;
+        setCategories([
+            ...categories,
+            {
+                id: newId,
+                name: 'New Category',
+                items: [{ id: 1, itemName: '', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 }]
+            }
+        ]);
+    };
+
+    const addDismantlingItem = () => {
+        const newId = Math.max(...dismantling.map(d => d.id), 0) + 1;
+        setDismantling([
+            ...dismantling,
+            { id: newId, itemName: '', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 }
+        ]);
+    };
+
+    const updateDismantlingItem = (itemId, field, value) => {
+        setDismantling(dismantling.map(item => {
+            if (item.id === itemId) {
+                const updated = { ...item, [field]: value };
+
+                // If user picked a dropdown item:
+                if (field === 'itemName' && value !== "__custom__") {
+                    updated.customItemName = "";
+                }
+
+                if (field === 'quantity' || field === 'rate') {
+                    const qty = parseFloat(field === 'quantity' ? value : item.quantity) || 0;
+                    const rate = parseFloat(field === 'rate' ? value : item.rate) || 0;
+                    updated.total = qty * rate;
+                }
+                return updated;
+            }
+            return item;
+        }));
+    };
+
+    const removeDismantlingItem = (itemId) => {
+        if (dismantling.length > 1) {
+            setDismantling(dismantling.filter(item => item.id !== itemId));
+        }
+    };
+
+    const updateCategoryName = (catId, newName) => {
+        setCategories(categories.map(cat =>
+            cat.id === catId ? { ...cat, name: newName } : cat
+        ));
+    };
+
+    const addItem = (catId) => {
+        setCategories(categories.map(cat => {
+            if (cat.id === catId) {
+                const newItemId = Math.max(...cat.items.map(i => i.id), 0) + 1;
+                return {
+                    ...cat,
+                    items: [...cat.items, { id: newItemId, itemName: '', customItemName: '', quantity: '', unit: 'sq.ft', rate: '', total: 0 }]
+                };
+            }
+            return cat;
+        }));
+    };
+
+    const updateItem = (catId, itemId, field, value) => {
+        setCategories(categories.map(cat => {
+            if (cat.id === catId) {
+                return {
+                    ...cat,
+                    items: cat.items.map(item => {
+                        if (item.id === itemId) {
+                            const updated = { ...item, [field]: value };
+
+                            // If user picked a dropdown item:
+                            if (field === 'itemName' && value !== "__custom__") {
+                                updated.customItemName = "";
+                            }
+
+                            if (field === 'quantity' || field === 'rate') {
+                                const qty = parseFloat(field === 'quantity' ? value : item.quantity) || 0;
+                                const rate = parseFloat(field === 'rate' ? value : item.rate) || 0;
+                                updated.total = qty * rate;
+                            }
+                            return updated;
+                        }
+                        return item;
+                    })
+                };
+            }
+            return cat;
+        }));
+    };
+
+    const removeItem = (catId, itemId) => {
+        setCategories(categories.map(cat => {
+            if (cat.id === catId && cat.items.length > 1) {
+                return {
+                    ...cat,
+                    items: cat.items.filter(item => item.id !== itemId)
+                };
+            }
+            return cat;
+        }));
+    };
+
+    const removeCategory = (catId) => {
+        if (categories.length > 1) {
+            setCategories(categories.filter(cat => cat.id !== catId));
+        }
+    };
+
+    const calculateGrandTotal = () => {
+        const itemsTotal = categories.reduce((sum, cat) =>
+            sum + cat.items.reduce((catSum, item) => catSum + (item.total || 0), 0), 0
+        );
+        const dismantlingTotal = dismantling.reduce((sum, item) =>
+            sum + (parseFloat(item.total) || 0), 0
+        );
+        return itemsTotal + dismantlingTotal;
+    };
+
+    const generatePDF = async () => {
+        const { jsPDF } = window.jspdf;
+        const element = document.getElementById('quotation-preview');
+
+        try {
+            const canvas = await html2canvas(element, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = pdfWidth / imgWidth;
+            const scaledHeight = imgHeight * ratio;
+
+            if (scaledHeight <= pdfHeight) {
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, scaledHeight);
+            } else {
+                let heightLeft = scaledHeight;
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+                heightLeft -= pdfHeight;
+
+                while (heightLeft > 10) {
+                    position = -pdfHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, scaledHeight);
+                    heightLeft -= pdfHeight;
+                    position -= pdfHeight;
+                }
+            }
+
+            const fileName = `Quotation_${projectInfo.clientName || 'Client'}_${projectInfo.flatNo || 'NA'}.pdf`;
+            pdf.save(fileName);
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF. Please try again.');
+        }
+    };
+
+    const getWorkOptionsForCategory = (catName) => {
+        return CATEGORY_ITEMS[catName] || CATEGORY_ITEMS["Other"];
+    };
+
+    return (
+        <div className="app-container">
+            {/* Input Form Panel */}
+            <div className="panel">
+                <div className="header">
+                    <div className="logo">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAD4AAAA9CAYAAAD1VdrqAAABSWlDQ1BJQ0MgUHJvZmlsZQAAKJF9kMFKQlEQhj/LEEooKIJAwlUgWIgVtFUjK1yIFVabuF5NA7XDvTeiXU/QKqIniN7ATUS9QRBUtKpdrQM3Jbc5WmlFDQz/x39mzpkz0OU3lCp7gUrVsTLJeHB1bT3oe8bPCIOECBimrWLpdEpK+NTvUb/Bo/V6XN/1+/zf6M0XbFP0TTJqKssBT0Q4vesozfvCQ5YMJXyoudjiU825Fp81a5YzCeEr4QGzZOSFH4TDuQ6/2MGV8o75MYOe3l+oriyJDksGSJEkyDyzZESzzDWZP3qmmj0JtlHsYbFFkRKOdMbEUZQpCC9QxWSCsHCUiOS03vXPHbY9JbPMHMtTj21v4w5qo9B/0PbGnuQ7i3B5rgzL+Nqsp+61NyejLe6rQc+R675kwReCxq3rvtZct3EC3fdwUX8HFA1cjzQRkicAAAA4ZVhJZk1NACoAAAAIAAGHaQAEAAAAAQAAABoAAAAAAAKgAgAEAAAAAQAAAD6gAwAEAAAAAQAAAD0AAAAAQUtyEQAAHmVJREFUaAW9m+lzFVea5p+bd9UuISEhVmNjMJjNmMVlu6p7aqa+TfS/MH/hRHR/6E8TE93RXd4LKFw2BiQEWtC+333JzP49JyWDq3CF7ajqFPdm3syT57zL8y7nPYdcq9VK9Xc4ir2cInru5nNqFxN1IymXJipwr5hGytd21d3aUMLz8uiw0r4+2hbViyL1chHvlpWP88or5p1YEWcTmnDHnxzXOa4U7v58Bgo//5UffyNNX8owyeUU51J1ooQzxCepSjHnalPd1S3Vnj5Rdfm5KhMjyr8xLR0dV2FkTPm+IRXyJdgpKM3llSKkHiwixoxRhrAQRP+/lGlz8Ddj/FWm3XEnjzaCplL1tbuK9qtKllbVmltQZ/6FtLasQnNHpXPHlS8gjNq6kpFRlcamVByaUNqPdukjgc0kzSGITMe+EoznfA9k/NLjb8b4nxOQh+l8ryvt7Km7+ELtuTnFzxakjXUV6w0V4x4sdVTuNFTo7CvXqKvd2VGnuqNC/7hyR6aVGwEF/UMwWEHraB8EZEfG/p+P+XN+/yjjlqtl/LMOXjAofeQ2dtSA4ebjp8o9A9JrGyo39pRP28J4lSRF9NZTkuuB3Y5yOIS82oqbPcWNhnrNqnr7o8B/UqWRKUxgFJPJtJ4NEAb7K2j/6xy8lvEU2+xhmwZScFJJxozh1s1jczwo8mWk4X+AI9pNuyq1W+pt7aq1vK7Snx4q93xR5a0tFeotlZKgMyRi5+SDMYBymk+VQIWHyOMj/ElAS6G5hjzWlNaW1ds9qryZH5xQ1D9MwyLtS5gCH4jIzICu7TwZJ4IWs51GRkkmLLd52Tb3ehu3/UQQEPkMlf64pzRCn/5NX7avJLTBDXW7SrbXVX/2TPVHM+ouLGt8eUWVVt0cciAh3sEyuQamib11T4XITirhTjZODu7tqeM8z5IW44OAGPtv1dStb6nTd0SF4QmVh+0EMYdiJoQ4OEH6xRG6N7tBj2Tmw3jhzBf0BkJ48lqNo3CVu4WDl3Noxlp1l1k4KoDONMJ+222lu2gYzdYfPVE6P6/CxqYqjRZdd9Slo4iPLTIXBs2GNVF5tGPdW8h+FuH1wT8NuuFZjnN6oACbR4yZxK2WOpxz+0OZ9oePqjiAMMoD9EQoTAl+uQLXhDtryANxHIgbgZgHO8a/4tVzaMWK6gDFbgFIQmgphnE+URvr3F5R49m8GrPPlc69UHEdhltNlSHezLax4yBfvgBcYMbiC6NCTBcIdqMCWjehFrKFYExg7/xZTiGk8R2lPZXpswiE1Wgq19pWr0oOsLuioh3gyDHl+48oKg3Tb0lxVKSHLPyZ2UzTIT5wN1PEazWOoIMdxzgcx2DHTUPTNtzFSe2i4ei7h+rOL6i4XVdftaU+CwQp22at6YK1BZL5echrGDIpIYZCXrVSSSspTNbamsTRDRQKKuU6QLwDnR1EYw8eRGAx0AcMcOUjjfkdt9Xt1NRrbOID1hVZ+yPThMJJXMBgsO0cdPjdDGxcHyDAd3Ovy9ysKdAcpFN0LG7WlKytqfH0qaozT9VYWdHoyipeuqUK9lU0IfRuH+AMLWaAEu+baSgIPcU4mk6poEalqN1eW4/2a7q39kLb5Z5OvfuW7lx/V+cnRzVSdJhDqwH+aM2Cowfr3/8OvhAw6oAT5M01yU5xQAL2EYwXyANyg2PKlftgAkSFVyHM1/YHjPCXjNOZabWm88TbHh46fjSr3uMnShYWFO1sKd9pow/CkiWKk4v8MYHYWBQiAH3kgaUpThksKqlVrggfrSfE6YerL/TN1p7m6nVtqKXyWJ8un57Wh2+d1ofvntWbp49oGCHmexa/uXVHQe+cs8ORJ3ha0BjOdmxRWb1Cv3J9I0pHjktEgtLgqHKlvoMoUAaNRASoz3Wa7bRLfmwPbe0We9gmBMXry2qg3dqTWaXPl1XZ2SYDa9Ims8UEwlLy7B4CSlCtmS/EEe8X0DSGAeMOfY1iSRsQNYsQH6yt67utdS2TrGwi3TqaasJHTAgawI6n+0q6cGpM1y+/pV/xOXd8SkNliATWEW0OHaTj6CHjOcYnTPABcTZKnlnQvcKw4so4TnCIuQBIGBhTWjmiuDCkVr6MD2100jb2ZZWV6lW1ZmZJOmaUn3mszosXSvaqKrbIsOi26NATtAy12KUVkZB8xCQhOYQXpcWDTwmGU21B7KNqVfc2d/QN3n+BKLBDxtZDaHHBngPhOREIExo0GHfxzW2NDJURwLhuXDyrO1fO68LJCY2VITFu8YZpALaBWZiGLmPCHxvx99eqIJySOviTtFIB9qPqO3JGubFTavVhBu1mnHpGVCRY957Pae5f/kUR2dbA7pZKXcdTIwFnhbcOTKNlMxxDvIex1/Rgtp1eoY8ogA03enrYrurbzQ093t7W00ZHm7RulYsKqQXv5+O6kh5OzNlQWlKeZCT0C0NJ3MFHpJoa6tebx8d08yImcO0c1+MaG67QHj/Qa4EwzIl2dlZ+ObgTKHL0sBKMjA4K7ZhkZnsqTqg4eU7RyfO8S0MnKHk00d7aVOvJjIYXl9EusY4XS0gR5WFGdGivTXuQi/jteT0s0RjJNoplrSCkJ9tbeogjfEDaudRsq8q7ftZF8jFMpYSkBNs9NVLQe5cvaWBgVN88nNUs5tTDKybBUeXVSvv0opHXxuNNzSxu6N53s7p+8YxuXXtHZ04d01GmsegRAjKoB9bh3IgIh02Dm3nyAc8KY5KpZhsTzvVpcPJkmB4jHXtlNAoUK7W6Bqp1MkskifaiIjEWbcIpAvTs2PKkR8f5fB6GKlpvJ3q0s6u7e5v6Y31H85269pJyiKfZxIL2TFiiblMTaOz96zf0248u6irevA8bfDK3qE+/eqD//OyeZp4tIRz6ZmJiR9TDtDr4h53Hq3ryYl1ffjujyxff0sfXz+viqSkN98E+TBYcclEe/j3wEtw9v9MeEYksENXj0JjyEQKF8AuGL9lx+Bi6ebRmWKfACcyph7OKYTByUoBT6NiJIIAG2dI2glrA6X29tqXvENYsTmilGKteLKqE5rhkYOwSDR8b7tPNa9f0619d07WrF3TmxIj6++gTW5+eekdXLp3Wxx9e1Sef3ddnn9/V7LMdtbvOAKEKB0k+p/VaSxuPVvRkYUsPvn2qa5fO6ubVS7r4xnFNDlRwqrhKhJt2ySib5AOdDijCpLifRyR5o9aq4xRcTGIIW4nYrasf/oTMBhR0E6zS9l0ARJhUWi6pTur4Wa2hrzc2NFdtaKEVa5s3uiXsj2O4zQSEMNUjEZkYHdKtKzD8wVVdv3pWp48PanCI/gNEPUvDo5cjDUwVNTVxQVfePqnffnBN//H7B/rk8weanV9RB7T0QEAuNwDq8CHVRF883tC3y5v6/OGcbl04q19fPqcrJ0Y1BrSj9r6iOq4T3eUj/AGeH5aCj3LsT4g28JcxjWh54FCAzaJhB/0CEoqAXSd4S6aQ3VQt2vxhZVn/vL+BhnvaI3a2K/h82jmRKRnSaPnoZKT3b17WnVs30MwFnToxhj1b0iQnOTRCnCBSQxQ6dUhEEBUc3KnJQR0bvaTzZ6b0j3cu6tN7D/VvXz7Uo9kV9ToOm4xV6kdvRe00W7o3u6H5BZzoNw/1f/7nLX14bkoD9v49Qx76+XOyav5iRyWsyBOsguOeTZbxDQacAbYAow45lbhACCEk4P2cRhbprAbcZ2pNPav1tNMP9AshR6Mt3Tf3NDlV0eX33tX/uHNB1999W8enJzQIDDEwsNBlKKQPvDxdNAHOqU2U/QyD0IZxUMfpY2VNj7+lty+d0dU7V/Tl3W/0xadfanZ2U/vMmqCMD+PjrNZB4B9n1vS7y9uKTx2BCwSEqRrZ1nDKxCUYtG07TDVfnZYypn2i/3zYtjxNtMb9kpHhzMytOogtAXLBWPyNDYwB149vXddHH2Fz18/qjekjGgQJdEALZ2B4WwuZ97M5ctZXCEFuAoHh49HsR3gnT+g8OjCiD8dGdPXcKf3u/Uv69PcP9a///4FerO0R8aHNKgR1zgmM0gTUBS1ipoFstO7uA+P29Hbi3AimzP2/chyEh1daZKKxptAYHUVJW6cmxvVPv7mum++d0sg4kQAg2GmaGv85Apgx5/M+expqApzhWjNhru9nRoM5QEjhPbQ0TCgcH+3TMcLYyOWOVv70VHsr62pj9/BrUdKJhzIyM1edC31AdDjzHFPyfD0Nyf2BxgPCeNkvOnX17MezrFBADNAPJLzCugez9ny2BNuklrGO9jN13VsiZmLHY8dJE49QLAAZEG6nFHIABnclJEje1JrmTIZEDlDG2AGN3PfDvGeEW/vaYUbYWCCT3AJd7Rr1Ajw+ZuZ3AyUZOeGdgBgzZZ1Zutg2zODojODs1oHGzWQmnOwlv/+XzHL34LAZoEQ+yJi22G7aUr5LxaVOFKBY0ILgfD+Fw8ERZkujkuOtPbNzA8SFosyXJWclhzsRTAenZMvoxupsUoaeX1fz+YLSFyQ41Rp9UIQgMXJbE+AuzF92hF7p0IQdKo6xYN65fTZmdv4JUD/s9AddEzOzDlw8SPHK/vMArqzkmHbmajgaJjVxk4UDFxlHqJQggNzAUPAdGdcv+wyawHmm9Y7qG9jvwpxaz+cVr+yqvL0Xylik9Goy87KJhbB0SBr3A6+E3Qy1Nj+YN6chVGfiCUZg6PPoJePBuRz2lL0T7I9bgSgahyJk0A1Mu4Ogb+MUr2kNIP9gn+QIZXtVEocuyUvMJKfDjMxlqhKLBpXhERIzxzZXXghqfpdkqL22rb3nK6pSfy8sL6q4s68KwWCQOUO5m4RQGpVCXMi0DE0BqpwCj5wNAQsh+/L5QOPhEUqyQDgC4w5f5huy+co+JbiO8aqGfgFN2JAaSKAFvIIgXF7xXDuEPBgnyyNVIn5Y2sRoBqD6RHhkMLKpHtlUj2Uj7bNwQEDvjU6DgLEA+87Ojurzy2qRriYw30dyNNDCq8OBaz+HCVagGJb9F2jlO3OuQSvZYyPxAI1mJ5g+Z5u6Q2ZsVPAgMM7v718Kzs033IgG/l3mYw2HzA6ubd804M9yxlsDPbfPQgVQNzuhzwz6PEKwmcAStB+7arpHIaO8rTparb9YUQzDFRgehOESNYECgu8RCZyrx3RgWrIjO2e+hWsjj+euCQa0hWto5b6DRKArUGq6subcPIQ6L9IwODYkkgbXb8bg0BKis4PZ6MHgP+GUcf6yIX2EsrW7pOcyk6Foi9kSiw7J6ob6SYcHgGUB5Nj/u8Ka4rITC5p3s+PwbNL5M62YiXHhJqbbDB/yEpSIEkJbOjB/h8cPoO6XfNhGggQ9KK+Z1OwIVH9/6dHcGeMHafr7sG8T7lAXwIaoI6MCM3CPASfMpSNrttkg6+uCKqfHJpEEiXjmaXBsJhBgCK/u2C8eHFkvZoqbwY55EOyVduHfwTkoADpeEhba/cC5hfnyQce8Ftr6fHiYLN9kHF9lkg3MmUEfB609iKHHneAzLUkYyWSfUR+E4qUkfEB4kzYuMwb5wEzR1hPQl4kvDP0K4+ElG7AdDl1kdu0bPg7o8BWXVp7/Emso0+oh1ENrvl72HDTJW75j7R3afji7g0MUBJ7plgH8joXnATyYneb3B/f964CNcBXQEAjDJ6BdTyoMOldpCybwlcOAThAeaP5+LEPNkcfTEIs5M9HMlMIChWmyVMy0P2jfAjKdLzUeBqHlwWFGTKlnTf4YMaYls5sgZDp7ebh5sJTQMTkx5Hyfmxsi4R9vhI5p7Be4n4fyPJMOqspEAaOCw19uemDfEXYfCMZBWrAx9Jj48Gf6bOdBORacCeUJQgl+IgwTBgv3LSwusnF8OzT2C3Tsd2N56mdw4n2ZW2cCIGxRFfEcq+PpK+fgeOyBo341mTJ2YZAqABpE0ty3luyuEsd64zhIjz7D5J4ewj2eMwv0mpodGgtm2QoOhDg17SMLdELiKXGDDLiHQCxa69Ihz+jwXK1HXS2mCFpgupx3HSH8mZ7sY1RZIA61r2icp4FxtzMkYCo4Bso3HsaEm1GGiGxX/MvgSacMtl9L9fRFTVNnKipTwo2Yl+coGroP69FvWvFhFkX51/DM48S8Kus4nXPsgSBbesLUNN8jtUU5RWoAHquJYKvlIW1QQtpvdmlBTmFE4CNsPtZ0MAXeyZs5EijPAhOmpK4qQQz3EKy1yr9XGIcBujj89nKrHY+9aniPB0agpVt2GRgP7Qqc57pMTbS43tD//X9faeX8Ud18e0rvTJY1WiIMJo0gfbgCuqAlqqgd9VHEZOkYzfiPtI3HFjYEh9/Uzrz/hepri4lIvVTUMlD6jjHuscDxZL6mGlXULhVRp8xU/ngfLTtSuGRGP4f2HqICIwTfkiUg/PozxjNpIA5EEmbhSMc5cY+llxSNU39iIhLDOGuTlIbDqgmDu7S8R3b32fMtza2v61MWEW+fnaAkdEbnj41qotRCUOx6ILNzudpOxhMcJ3/sC+KcVUJz2LhR4aWedhBQv1YR2Ncb+7q7sq3Hm229oOzU6JbUJnXNmIUelqmHoTUCCa4lpxRLvFprVWWO2cmTWTfUM2f3UuM8MP6d0vEcCWUFfxf5wrSS+nedevkOi3xDxYpODzEuC/67na7qbGXqkmU1KfjOsby0OM8CwnJD/zlb1e23J/TRhaN61zXxAqWDhFYUAHNxHwyzUOhqLQwjDbI0lhOo2japiS2j8e+2q6y+bOj+5h61+US7pMK2zhK2HoGWIQQ2CJ2TVGFO8N7uPOWwfmr0xwY1OsRkCOFYmQltXYAL5kDuwGCvQJ0GZjxBm27Qg6CESUQTO2pRPu6wKFAlpawikjILB1cH+nWsQFGg1dYSpZ9t7HkXFXYpRnapHW1Q8Nx7tqdnq/u6/3QDAUzqDkJ4Z3pUR1goLCFfawSAhjKyi5i241Vi2SzbSL5c29SfNnc1X2dFBsh3C4MQD/ztuNKGhkHYUVAxWRrSUYqcY8A4WWvr6/3nWp3s05njR3Ti+ISGR4ZVYkE/zUGQnUYw8UPGje5wB+YtAH730MIe+1HWgXS9g7RgPkHrzp/tTt/gM42kzzDhWCqjZQp8C/V9bbCC2sa2C/baOLGtelmfPG3p4cqSvphZ1503R3X7/LSuTA5prEiZulBWvUKVthprBobvrm+zArOtmXrCEhRCYWGBZBYTy6uMwxzGpsdYaj6JkI5FIxrhfWqvPLPzyqnBVHiOZauNlZoW5rd14sQxCp0jGhsjHLgIHHILGDfy7VAABX+ECJzGfiNSmyrKPlPKfRycl+qDtJ1OAckygilhKz4zudQYDJ5Gy+eopS+297TCHHyNkGS0xCzDEKm0CmL25mp6Qkn490+29I9nj+iDd86rEU/o8fpzPWQlZZbcfZb5+DohLrbnB/qO8/3djkag8xhh8WRpUGOVSMMUNfrYPOMYb38BeIJXZ5MMOoTuak+NelPra4sIYENTVHlHz57U0bfYPoIzLtiTBggwC7E7WPZGnRrBwvNofjsYFVhby2F39jsGR8ijg8DQLM6O0gBRP6chlmPHEM5xFv2fUQpepfy7gwAboKbAqmcKWlYJe+tMT9eXWHXBFIyKOfbMrLG5oAGjddTi1LVA1aFCYjLMgJMsKBzD4U3i4Scxv34gGfHcjsrO0J8DyzF1GA/THNr7aOCTmrV9LW0TXbbb+tWFG0GAaNxKRO8gODc2pOoYiQhbPyrcK5NMUEpjmoh/80BI1VWQGFvxbglHB24BMZ7TzqAco7TUT5VkrL+g3X58QK2mxYZNoM18HobYHODS9WIn0dLceuijQ6HBWoiIHGVstwBjLPBqgvB3pDyoCcrYozi0flBkSHssKwAwhANSshucfCv8RBrOH1IE28Z37aPMmBlhMjRAXZ4CSLfZSjuuGBiWbNV69u+f6dl/3NUahfwu9taPJx/G4VTg2uGgEzy4UxobBuGIVw01JyhOurwNxAugtiVvGtoDUSt4/qVOU4vNpjapyLZ4tltha4HnujCdo7riENmPX+mHm7Fin07hQMcLCBEiXbkvEQa9KTAP4y57ZdvMHMcPx89M1URZ+y5oxiCijedPBooau/SmLv3uY9343/9LY6y85OJ6i/VxhyMMns6jraqqLza18c2s5r+6q5X7D8OuiCIFAi8Xu4ztObLZ5jIw7S0feSTsvyBtx2kIdK7dwvarQHwHYaxiPkuNmtbrNT3Hd9RAgBONAvcHYfgo9fGpfL8mKEtN0ke/6bFJcfYnXJsGRrFQvVTNzjB0Bj089/YQLwu3EbYzuzwLGdPnWJS4/b7OfXhb0ywzVY6NqDfIml1aa6U4TAi0m0vUh6F7U1/MZtv91TVtzM5q7g93tXj/T6ovLKnMvtQKRBZI/6zYoFxE7JWNcM09izxkUOGSJSgI9OaDGuPsYx+7hL/n5OAr7LyoU5bqwzxGWBYaz1cCvIdwWhWQkScbOzws6gzExtlB6PeYaNXzBbvoNkxXPZMY7df0RTYU3L6pd27d0dTbb6l/kv2xZcwMdKfANJdWW6kl1y7hyXmdEMugsAD0rLEOEK2vr7JODQI++0rbXz5Qe35VESaQt/p518fhPpggDBinezrHzrg2HO2Auu6PVzrc2KfhFkWIXdbRvYhXLhGWyPkHbVYsOoJB7tu4soNuDljPxktBi48Iu3eC0oX5aJwQydLz2x/e1Jsf3NDkhXPqPzKlmE1Anjy5ryxzoArcA+q2xw725lTSaSS+LXgJz4sTKI+AY45EpbHCVq/Z55r9w31tfnpftWfLpIkdwgqFAyTu952E2c4Bf0CFU9ICxIU6OPAObXjewfs3kcYecbfGc6fGRlEJX1ICdZ0CK6Re6eR9h7RD122GTV5E+hz3kqDlaHxQ09ff0cWPbuv0e1c0fva0+tkOng6wGQhWnc0bO9aRZ3NhP00b5wbNB9IM/GY/IOQlvPwSm+u510UAu+ycaH4zoxdf3dcSCKjPLBICvZIFSZhM11kUovDSnndTeEeCp4IZDujVUYFnTof3mHLuE+6yrSU2Hzw/iOtG4I80M1RqYZzRWWPgPRa224Q5zyYq42M68d5FvfnxLZ25fVUTZ0+FTf8RqzepabDiGNUMcnlwBHZfs93r8Pmfnb2EDN9BQC7a59ha0SLD2pud1yLML3x6V9Un8yp57xtkdrylw6zjdLwWnokRwk0QqAhzAWy5RpyvsYDvFt5x4YmPNRy2jAaDMeqc0BRUJzFhd4gqR0Z08vK7uvqbj3X2xhWNvnFC+SNDSjBXm5RXfLEqiPXX64+/3Of2+nYwncksJP1or2cMw0Se7Z3drR3tPHyqpc//qOVP72n/yYJSRwHgaBPw/DgEQ+zI/2vB5mChJDDoTQZNGEc+dGfNeJHBkAzuGsdIEsI7VZCUnxzT6fev6l2c1hk2BB596yy7GWE4oMwOjpBn4YEIVut+hJPs9k9m/NVeAvMQ5P1t0BpsJ0LTvY1d7X03p+df3tfGZ99qZ3aRJSEQAFMuGXs7FxKAQyPCvgCmeK+F+WQPLB4nHTxwqsyaXJt8vnxyUseusVngw1t648ZVHT15ghUZa9h1dwvRUrPgGOfAoVrzRhZPXnv8IsbdU96zNzp3/A9727l2nI/I0Jrsa2s+XtbSV1/r6Vf3tP14jv+a0QhJShnkmPe2Gefc9KSGqWwoc2Ee3poVqiuEnCE295y/fYMYfEfT7KoYZ5m4OMx82A4O4bz0+QdiMwgzGQTbdpLzN2fczitzE46gdiGcGdW27OGSNiGGxb69p0wSvsAJfn5fe4+fkcqxxIvEXNcAkWpZ4zDuvXaO96ywaQQGT7JJ6J1/+EBn2BI2cmJa+aE+kAAnRgSRxxy6uoKcgrZ9MhXWtD8mw4nVjx2/SOPuz1UZj+Dw4JpWKBt5UMKiq6CO2Y4C+Q6QZfXTAli5+0CPP/lSazPPNLDTJHSxqsxEpsrqqtflbMNvfvCerv7Db3Sc3Q8jp0+o2F/BpOgTobiaEtKmVxg/ZMzoM8M++2OmndP/2PGLGHdnYTsHnTNGgBd3sjFg1jbnunYgxASbEGZxvc19mJ7Xt598ru1/+0K1uSVtVPfUGSqFOHz5t7/W27+6qaMwnAfS3oTkXsPHA3k8O9kwVPjKxjxok6k/e/ySru+b/ODiFzP+g15e8yPscWN0p8OetNiuy2REuWas3dVN7X3zSMvsiN5iN/PwyWM6feWips69wU7m4aDhbNeEof33Of7bGDf5jq0lXK2zw6TVUKO6T4mLiiq7JfqGB8NmP6+M2huTxmSY/fvw/dMTmJ87vtNegzGbRZkHQzSLrxZAWLgIDjG7f1B5Dy8ZHRiLn/7cYX9y+6xM8ZOb//SGzvN9OLyEiYovwoFGfRl+mmm3ceLiMMc3vy0YC8qFj9Ds4M2/5em/AIdUC+JHZ6gVAAAAAElFTkSuQmCC" alt="VPC Logo" />
+                    </div>
+                    <h1>Quotation Generator</h1>
+                    <p className="subtitle">VPC DÉCOR & CONTRACTORS</p>
+                </div>
+
+                {/* Project Information */}
+                <div className="form-section">
+                    <h2>Project Information</h2>
+                    <div className="grid-2">
+                        <div className="form-group">
+                            <label>Project Name</label>
+                            <input
+                                type="text"
+                                value={projectInfo.projectName}
+                                onChange={(e) => setProjectInfo({ ...projectInfo, projectName: e.target.value })}
+                                placeholder="ATS RHAPSODY"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Location</label>
+                            <input
+                                type="text"
+                                value={projectInfo.location}
+                                onChange={(e) => setProjectInfo({ ...projectInfo, location: e.target.value })}
+                                placeholder="Greater Noida Sec-1"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Client Name</label>
+                            <input
+                                type="text"
+                                value={projectInfo.clientName}
+                                onChange={(e) => setProjectInfo({ ...projectInfo, clientName: e.target.value })}
+                                placeholder="Client Name"
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Flat No.</label>
+                            <input
+                                type="text"
+                                value={projectInfo.flatNo}
+                                onChange={(e) => setProjectInfo({ ...projectInfo, flatNo: e.target.value })}
+                                placeholder="T2-2084"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Preliminary Work */}
+                <div className="form-section">
+                    <h2>Preliminary Work</h2>
+                    <div className="items-section">
+                        {dismantling.map((item) => (
+                            <div key={item.id} className="item-row">
+                                <div className="item-inputs">
+                                    <select
+                                        value={item.itemName || ""}
+                                        onChange={(e) => updateDismantlingItem(item.id, 'itemName', e.target.value)}
+                                    >
+                                        <option value="" disabled>Select item…</option>
+                                        {PRELIM_ITEMS.map((opt) => (
+                                            <option key={opt} value={opt}>{opt}</option>
+                                        ))}
+                                        <option value="__custom__">Custom…</option>
+                                    </select>
+
+                                    {item.itemName === "__custom__" && (
+                                        <input
+                                            type="text"
+                                            value={item.customItemName}
+                                            onChange={(e) => updateDismantlingItem(item.id, 'customItemName', e.target.value)}
+                                            placeholder="Type custom item name"
+                                        />
+                                    )}
+
+                                    <input
+                                        type="number"
+                                        value={item.quantity}
+                                        onChange={(e) => updateDismantlingItem(item.id, 'quantity', e.target.value)}
+                                        placeholder="Qty"
+                                    />
+                                    <select
+                                        value={item.unit}
+                                        onChange={(e) => updateDismantlingItem(item.id, 'unit', e.target.value)}
+                                    >
+                                        {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                                    </select>
+                                    <input
+                                        type="number"
+                                        value={item.rate}
+                                        onChange={(e) => updateDismantlingItem(item.id, 'rate', e.target.value)}
+                                        placeholder="Rate"
+                                    />
+                                    {dismantling.length > 1 && (
+                                        <button className="btn-remove" onClick={() => removeDismantlingItem(item.id)}>✕</button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                        <button className="btn-add" onClick={addDismantlingItem}>+ Add Preliminary Item</button>
+                    </div>
+                </div>
+
+                {/* Work Items */}
+                <div className="form-section">
+                    <h2>Work Items</h2>
+                    {categories.map((category) => (
+                        <div key={category.id} className="items-section">
+                            <div className="item-header">
+                                <input
+                                    type="text"
+                                    value={category.name}
+                                    onChange={(e) => updateCategoryName(category.id, e.target.value)}
+                                    style={{
+                                        border: 'none',
+                                        background: 'transparent',
+                                        fontSize: '1.1rem',
+                                        fontWeight: '600',
+                                        color: CATEGORY_COLORS[category.name] || CATEGORY_COLORS['Other']
+                                    }}
+                                />
+                                {categories.length > 1 && (
+                                    <button className="btn-remove" onClick={() => removeCategory(category.id)}>✕</button>
+                                )}
+                            </div>
+
+                            {category.items.map((item) => (
+                                <div key={item.id} className="item-row">
+                                    <div className="item-inputs">
+                                        <select
+                                            value={item.itemName || ""}
+                                            onChange={(e) => updateItem(category.id, item.id, 'itemName', e.target.value)}
+                                        >
+                                            <option value="" disabled>Select item…</option>
+                                            {getWorkOptionsForCategory(category.name).map((opt) => (
+                                                <option key={opt} value={opt}>{opt}</option>
+                                            ))}
+                                            <option value="__custom__">Custom…</option>
+                                        </select>
+
+                                        {item.itemName === "__custom__" && (
+                                            <input
+                                                type="text"
+                                                value={item.customItemName}
+                                                onChange={(e) => updateItem(category.id, item.id, 'customItemName', e.target.value)}
+                                                placeholder="Type custom item name"
+                                            />
+                                        )}
+
+                                        <input
+                                            type="number"
+                                            value={item.quantity}
+                                            onChange={(e) => updateItem(category.id, item.id, 'quantity', e.target.value)}
+                                            placeholder="Qty"
+                                        />
+                                        <select
+                                            value={item.unit}
+                                            onChange={(e) => updateItem(category.id, item.id, 'unit', e.target.value)}
+                                        >
+                                            {UNITS.map(u => <option key={u.value} value={u.value}>{u.label}</option>)}
+                                        </select>
+                                        <input
+                                            type="number"
+                                            value={item.rate}
+                                            onChange={(e) => updateItem(category.id, item.id, 'rate', e.target.value)}
+                                            placeholder="Rate"
+                                        />
+
+                                        {category.items.length > 1 && (
+                                            <button className="btn-remove" onClick={() => removeItem(category.id, item.id)}>✕</button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+
+                            <button className="btn-add" onClick={() => addItem(category.id)}>+ Add Item</button>
+                        </div>
+                    ))}
+
+                    <button
+                        className="btn-secondary"
+                        onClick={addCategory}
+                        style={{ width: '100%', marginTop: '1rem' }}
+                    >
+                        + Add Category
+                    </button>
+                </div>
+
+                <button className="btn-success" onClick={generatePDF}>📄 Generate PDF</button>
+            </div>
+
+            {/* Preview Panel */}
+            <div className="panel preview-container">
+                <div id="quotation-preview" className="quotation-preview">
+                    <div className="preview-header">
+                        <div className="preview-logo">
+                            <img src="data:image/png;base64,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" alt="VPC Logo" />
+                        </div>
+                        <div className="company-info">
+                            <h2>VPC DÉCOR & CONTRACTORS</h2>
+                        </div>
+                    </div>
+
+                    <div className="project-info">
+                        <div className="info-row">
+                            <span className="info-label">NAME OF PROJECT:</span>
+                            <span>{projectInfo.projectName || '---'}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="info-label">LOCATION:</span>
+                            <span>{projectInfo.location || '---'}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="info-label">CLIENT NAME:</span>
+                            <span>{projectInfo.clientName || '---'}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="info-label">FLAT NO.:</span>
+                            <span>{projectInfo.flatNo || '---'}</span>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>S.n</th>
+                                <th>Items</th>
+                                <th className="text-right">Quantity</th>
+                                <th className="text-right">RATE</th>
+                                <th className="text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {dismantling.some(d => getDisplayName(d) || d.total > 0) && (
+                                <>
+                                    {dismantling.map((item, index) => (
+                                        <tr key={`dis-${item.id}`}>
+                                            <td>{index + 1}</td>
+                                            <td>{getDisplayName(item) || '---'}</td>
+                                            <td className="text-right">
+                                                {item.quantity ? `${item.quantity} ${item.unit}` : ''}
+                                            </td>
+                                            <td className="text-right">{item.rate || ''}</td>
+                                            <td className="text-right">
+                                                {item.total > 0 ? item.total.toLocaleString() : ''}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </>
+                            )}
+
+                            {categories.map((category) => (
+                                <React.Fragment key={category.id}>
+                                    <tr className="category-row">
+                                        <td colSpan="5">{category.name}</td>
+                                    </tr>
+                                    {category.items.map((item) => (
+                                        <tr key={item.id}>
+                                            <td></td>
+                                            <td>{getDisplayName(item) || '---'}</td>
+                                            <td className="text-right">
+                                                {item.quantity ? `${item.quantity} ${item.unit}` : '---'}
+                                            </td>
+                                            <td className="text-right">{item.rate || '---'}</td>
+                                            <td className="text-right">
+                                                {item.total > 0 ? item.total.toLocaleString() : '---'}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
+                            ))}
+
+                            <tr className="grand-total">
+                                <td colSpan="4" className="text-right">GRAND TOTAL</td>
+                                <td className="text-right">{calculateGrandTotal().toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div className="disclaimer-section">
+                        <h3>DISCLAIMER</h3>
+                        <ul>
+                            <li>MINOR CHANGES CAN BE DONE WITHIN THE ESTIMATED GIVEN</li>
+                            <li>MAJOR CHANGES WILL COST EXTRA AS PER DESIGN</li>
+                            <li>3D AND 2D WILL BE PROVIDED AS PER DESIGN</li>
+                            <li>ESTIMATED TIME OF PROJECT WILL BE 3-4 MONTHS</li>
+                        </ul>
+                        <h3 style={{ marginTop: '1rem' }}>PAYMENT PLAN</h3>
+                        <p>50% advance, 40% between, 10% before final handover</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// React 18 mount
+ReactDOM.createRoot(document.getElementById('root')).render(<QuotationGenerator />);
+</script>
+</body>
+</html>
